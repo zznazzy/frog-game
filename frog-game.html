@@ -1,0 +1,2474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frog Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0d280e 0%, #244d1a 25%, #4b5a2d 50%, #568c4a 75%, #9bb226 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        canvas {
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 25px;
+            cursor: crosshair;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(123,201,156,0.05) 50%, rgba(255,255,255,0) 100%);
+            box-shadow: 
+                0 0 40px rgba(255, 255, 0, 0.5),
+                0 15px 35px rgba(34, 139, 34, 0.4),
+                inset 0 0 40px rgba(255, 255, 255, 0.25),
+                inset 0 2px 10px rgba(255, 255, 255, 0.35);
+        }
+
+        .game-container {
+            position: relative;
+        }
+
+        .title-screen, .transition-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.25), rgba(46, 125, 50, 0.35), rgba(76, 175, 80, 0.15));
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 40px rgba(255, 255, 0, 0.5),
+                0 15px 35px rgba(34, 139, 34, 0.4),
+                inset 0 0 40px rgba(255, 255, 255, 0.25),
+                inset 0 2px 10px rgba(255, 255, 255, 0.35);
+        }
+
+        .title-screen h1 {
+            color: #ffff32;
+            font-size: 3em;
+            margin-bottom: 20px;
+            padding: 15px 30px;
+            border: 3px solid rgba(255, 255, 50, 0.6);
+            border-radius: 20px;
+            background: linear-gradient(145deg, rgba(255, 255, 50, 0.1), rgba(255, 215, 0, 0.05));
+            backdrop-filter: blur(10px);
+            text-shadow: 
+                0 0 20px rgba(255, 255, 164, 0.739),
+                0 4px 8px rgba(75, 0, 130, 0.8),
+                0 2px 4px rgba(34, 139, 34, 0.9);
+            animation: titleGlow 3s ease-in-out infinite alternate, titleFloat 4s ease-in-out infinite;
+            box-shadow: 
+                0 0 30px rgba(255, 255, 0, 0.4),
+                0 8px 16px rgba(0, 0, 0, 0.2),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes titleGlow {
+            from { 
+                text-shadow: 0 0 20px rgba(255, 255, 74, 0.5), 0 4px 8px rgba(75, 0, 130, 0.8), 0 2px 4px rgba(34, 139, 34, 0.9);
+                border-color: rgba(255, 255, 50, 0.6);
+                box-shadow: 0 0 30px rgba(255, 255, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            }
+            to { 
+                text-shadow: 0 0 40px rgba(255, 235, 108, 0.9), 0 0 60px rgba(255, 255, 0, 0.4), 0 4px 8px rgba(75, 0, 130, 0.8), 0 2px 4px rgba(34, 139, 34, 0.9);
+                border-color: rgba(255, 255, 50, 0.9);
+                box-shadow: 0 0 50px rgba(255, 255, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.2), inset 0 0 30px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .title-screen p, .transition-screen p, .game-over-screen p {
+            font-size: 1.3em;
+            margin: 10px 0;
+            text-align: center;
+            color: #ccffee;
+            text-shadow: 
+                0 2px 4px rgba(75, 0, 130, 0.8),
+                0 1px 2px rgba(75, 0, 130, 0.6);
+        }
+
+        .click-prompt {
+            color: #eeec90;
+            font-size: 1.2em;
+            margin-top: 30px;
+            animation: pulse 2s infinite;
+            padding: 18px 35px;
+            border: 2px solid #eee990;
+            border-radius: 30px;
+            background: linear-gradient(145deg, rgba(144, 238, 144, 0.25), rgba(144, 238, 144, 0.1));
+            box-shadow: 
+                0 8px 16px rgba(75, 0, 130, 0.3), 
+                0 0 20px rgba(219, 144, 238, 0.4),
+                inset 0 0 20px rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            text-shadow: 
+                0 2px 4px rgba(75, 0, 130, 0.8),
+                0 1px 2px rgba(75, 0, 130, 0.6);
+        }
+        
+        .click-prompt:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 24px rgba(75, 0, 130, 0.5), 
+                0 0 25px rgba(249, 255, 141, 0.801),
+                inset 0 0 20px rgba(255,255,255,0.25);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .transition-screen {
+            background: rgba(128, 0, 0, 0.95);
+            overflow: hidden;
+        }
+
+
+
+        .transition-screen h2 {
+            color: #ff4444;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 
+                0 0 20px rgba(255, 68, 68, 0.8),
+                0 4px 8px rgba(75, 0, 130, 0.8),
+                0 2px 4px rgba(75, 0, 130, 0.9);
+            animation: danger-glow 1s ease-in-out infinite alternate;
+        }
+        
+        .game-over-screen h2 {
+            color: #ff4444;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 
+                0 0 20px rgba(255, 68, 68, 0.8),
+                0 4px 8px rgba(75, 0, 130, 0.8),
+                0 2px 4px rgba(75, 0, 130, 0.9);
+            animation: danger-glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes danger-glow {
+            from { text-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
+            to { text-shadow: 0 0 30px rgba(255, 68, 68, 1), 0 0 40px rgba(255, 0, 0, 0.5); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 2px 8px rgba(75, 0, 130, 0.8), 0 0 10px rgba(75, 0, 130, 0.5);
+            z-index: 50;
+            background: linear-gradient(145deg, rgba(123, 201, 156, 0.25), rgba(76, 175, 80, 0.2));
+            padding: 20px;
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 20px rgba(255, 237, 98, 0.35),
+                0 8px 16px rgba(34, 139, 34, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .powerup-display {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffdd00;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 50;
+            background: linear-gradient(145deg, rgba(123, 201, 156, 0.25), rgba(76, 175, 80, 0.2));
+            padding: 15px 25px;
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 20px rgba(255, 237, 98, 0.35),
+                0 8px 16px rgba(34, 139, 34, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.15);
+            text-shadow: 0 2px 8px rgba(75, 0, 130, 0.8), 0 0 10px rgba(75, 0, 130, 0.5);
+            animation: powerup-pulse 1s infinite;
+        }
+
+        @keyframes powerup-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        .stunned-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            z-index: 50;
+            animation: shake 0.5s infinite;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-3deg); }
+            75% { transform: translate(-50%, -50%) rotate(3deg); }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            text-align: center;
+            background: linear-gradient(145deg, rgba(123, 201, 156, 0.25), rgba(76, 175, 80, 0.2));
+            padding: 15px 25px;
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 20px rgba(255, 237, 98, 0.35),
+                0 8px 16px rgba(34, 139, 34, 0.4),
+                inset 0 0 20px rgba(255, 255, 255, 0.15);
+            text-shadow: 0 2px 8px rgba(75, 0, 130, 0.8), 0 0 10px rgba(75, 0, 130, 0.5);
+        }
+
+        /* Button styles */
+        .game-button {
+            background: linear-gradient(145deg, rgba(144, 180, 238, 0.25), rgba(144, 238, 144, 0.1));
+            color: #eee690;
+            border: 2px solid #d0ee90;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 16px rgba(75, 0, 130, 0.3), 
+                0 0 20px rgba(142, 255, 142, 0.4), 
+                inset 0 0 20px rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 4px rgba(75, 0, 130, 0.8), 0 1px 2px rgba(75, 0, 130, 0.6);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-weight: bold;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 24px rgba(75, 0, 130, 0.5), 
+                0 0 25px rgba(249, 255, 141, 0.801),
+                inset 0 0 20px rgba(255,255,255,0.25);
+            border-color: #f0ff90;
+            background: linear-gradient(145deg, rgba(144, 180, 238, 0.35), rgba(144, 238, 144, 0.2));
+        }
+
+        /* Confetti animation */
+        .confetti {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffdd00;
+            animation: confetti-fall 3s linear infinite;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(odd) {
+            background: #ff69b4;
+            animation-delay: -0.5s;
+        }
+
+        .confetti:nth-child(3n) {
+            background: #00ffff;
+            animation-delay: -1s;
+        }
+
+        .confetti:nth-child(4n) {
+            background: #32cd32;
+            animation-delay: -1.5s;
+        }
+
+        .confetti:nth-child(5n) {
+            background: #ff6347;
+            animation-delay: -2s;
+        }
+
+        /* Rainbow text animation */
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #0080ff, #8000ff, #ff0080, #ff0000);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow-flow 3s ease-in-out infinite;
+        }
+
+                 @keyframes rainbow-flow {
+             0%, 100% { background-position: 0% 50%; }
+             50% { background-position: 100% 50%; }
+         }
+
+         /* Home button hover effect */
+         #homeButton:hover {
+             transform: translateY(-2px);
+             box-shadow: 
+                 0 0 25px rgba(255, 237, 98, 0.5),
+                 0 12px 20px rgba(34, 139, 34, 0.5),
+                 inset 0 0 25px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- Title Screen -->
+        <div id="titleScreen" class="title-screen">
+            <h1>Frog Game :D</h1>
+            <p>Catch all the flies while avoiding the angry bees!</p>
+            <p>Reach level 10 to become the ultimate pond master!</p>
+            <p>WASD to move • SPACE to shoot tongue</p>
+            
+            <!-- Frog Customization -->
+            <div style="margin: 20px 0;">
+                <p style="color: #ffea64; font-size: 18px;">Customize Your Frog:</p>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <button id="prevColor" class="game-button">&lt;</button>
+                    <span id="colorName" style="color: white; min-width: 80px; text-align: center; text-shadow: 0 2px 4px rgba(75, 0, 130, 0.8), 0 1px 2px rgba(75, 0, 130, 0.6);">Purple</span>
+                    <button id="nextColor" class="game-button">&gt;</button>
+                </div>
+            </div>
+            
+            <div class="click-prompt">Click to Start Adventure</div>
+            
+            <!-- Audio Controls -->
+            <div style="position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px;">
+                <button id="musicToggle" class="game-button" style="font-size: 14px; padding: 8px 12px;">🎵 Music</button>
+                <button id="audioToggle" class="game-button" style="font-size: 14px; padding: 8px 12px;">🔊 Audio</button>
+            </div>
+        </div>
+
+        <!-- Transition Screen -->
+        <div id="transitionScreen" class="transition-screen hidden">
+            <h2>HARD MODE ACTIVATED</h2>
+            <p>The bees are now hunting you relentlessly!</p>
+            <p>Can you survive the swarm?</p>
+            <div class="click-prompt">Click to Face Your Fate</div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="game-over-screen hidden">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p id="gameOverSubtext">The bees got you!</p>
+            <div class="click-prompt">Click to Try Again</div>
+        </div>
+
+        <!-- UI Overlay -->
+        <div id="uiOverlay" class="ui-overlay hidden">
+            <div id="scoreDisplay">Score: 0</div>
+            <div id="levelDisplay">Level: 1</div>
+            <div id="timeDisplay">Time: 0:00</div>
+        </div>
+        
+        <!-- Home Button -->
+        <button id="homeButton" class="hidden" style="position: absolute; top: 20px; right: 20px; color: white; font-size: 18px; font-weight: bold; text-shadow: 0 2px 8px rgba(75, 0, 130, 0.8), 0 0 10px rgba(75, 0, 130, 0.5); background: linear-gradient(145deg, rgba(123, 201, 156, 0.25), rgba(76, 175, 80, 0.2)); padding: 15px 20px; border-radius: 18px; backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 0 20px rgba(255, 237, 98, 0.35), 0 8px 16px rgba(34, 139, 34, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.15); font-family: 'Comic Sans MS', cursive, sans-serif; cursor: pointer; transition: all 0.3s ease;">Home</button>
+
+        <!-- Powerup Display -->
+        <div id="powerupDisplay" class="powerup-display hidden"></div>
+
+        <!-- Stunned Text -->
+        <div id="stunnedText" class="stunned-text hidden">STUNNED!</div>
+        
+        <!-- Confirmation Modal -->
+        <div id="confirmModal" class="title-screen hidden" style="z-index: 200;">
+            <h2 style="color: #ff4444; font-size: 2em; margin-bottom: 20px;">Confirm Action</h2>
+            <p id="confirmMessage" style="font-size: 1.2em; margin-bottom: 30px;">Are you sure?</p>
+            <div style="display: flex; gap: 20px; justify-content: center;">
+                <button id="confirmYes" class="game-button" style="background: linear-gradient(145deg, rgba(255, 100, 100, 0.25), rgba(255, 150, 150, 0.1)); border-color: #ff6666;">Yes</button>
+                <button id="confirmNo" class="game-button">No</button>
+            </div>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="title-screen hidden" style="z-index: 150;">
+            <h2 style="color: #ffdd00; font-size: 2.5em; margin-bottom: 20px;">Game Paused</h2>
+            <p style="font-size: 1.2em;">Click here or switch back to tab to resume</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // =====================================
+        // GAME CONFIGURATION
+        // =====================================
+        
+        const CONFIG = {
+            // Lilypad settings
+            LILYPAD_CENTER: { x: 400, y: 300 },
+            LILYPAD_RADIUS: 280,
+            
+            // Frog settings
+            FROG_RADIUS: 25,
+            FROG_SPEED: 4,
+            FROG_SPEED_BOOSTED: 6,
+            
+            // Tongue settings
+            TONGUE_MAX_LENGTH: 120,
+            TONGUE_MAX_LENGTH_LONG: 200,
+            TONGUE_SPEED: 6,
+            
+            // Fly settings
+            FLY_RADIUS: 8,
+            FLY_HITBOX_RADIUS: 12,
+            FLY_SPEED: 2,
+            INITIAL_FLIES: 3,
+            
+            // Bee settings
+            BEE_RADIUS: 15,
+            BEE_SPEED: 2.5,
+            BEE_SPEED_HARD: 3.2,
+            BEE_COUNT: 1,
+            
+            // Powerup settings
+            POWERUP_DURATION: 6000, // milliseconds
+            POWERUP_RADIUS: 15,
+            
+            // Audio settings
+            MASTER_VOLUME: 0.7,
+            MUSIC_VOLUME: 0.4,
+            
+            // Game progression
+            HARD_MODE_LEVEL: 6,
+            WIN_LEVEL: 11,
+            MAX_FLIES: 8,
+            MAX_BEES: 3
+        };
+        
+        // Game state
+        let gameState = 'title';
+        let score = 0;
+        let level = 1;
+        let gameStarted = false;
+        let isHardMode = false;
+        let gameStartTime = 0;
+        let gameTime = 0;
+        
+        // Frog customization
+        const frogColors = [
+            { name: 'Purple', body: '#8A2BE2', bodyLight: '#9A4BE8', legs: '#6A0DAD' },
+            { name: 'Blue', body: '#4169E1', bodyLight: '#5A79F1', legs: '#2E4BC7' },
+            { name: 'Red', body: '#DC143C', bodyLight: '#EC244C', legs: '#B8102E' },
+            { name: 'Orange', body: '#FF8C00', bodyLight: '#FF9C20', legs: '#E67C00' },
+            { name: 'Rainbow', body: 'rainbow', bodyLight: 'rainbow', legs: 'rainbow' }
+        ];
+        let selectedFrogColor = 0;
+        
+        // Lilypad boundaries (circular) - now using CONFIG
+        const lilypadCenter = CONFIG.LILYPAD_CENTER;
+        const lilypadRadius = CONFIG.LILYPAD_RADIUS;
+        
+        // Game objects
+        let frog = { 
+            x: 370, 
+            y: 270, 
+            radius: CONFIG.FROG_RADIUS, 
+            speed: CONFIG.FROG_SPEED, 
+            angle: 0,
+            // Eye physics
+            eyeAngle: 0,
+            eyeVelocity: 0,
+            eyeTargetAngle: 0
+        };
+        const flies = [];
+        const bees = [];
+        const tongue = { active: false, x: 0, y: 0, length: 0, maxLength: CONFIG.TONGUE_MAX_LENGTH, speed: CONFIG.TONGUE_SPEED, angle: 0, startX: 0, startY: 0 };
+        const powerups = [];
+        const activePowerup = { type: '', timer: 0, duration: CONFIG.POWERUP_DURATION };
+        const particles = [];
+        const ashParticles = [];
+        
+        // Game settings
+        let flySpeed = CONFIG.FLY_SPEED;
+        let initialFlies = CONFIG.INITIAL_FLIES;
+        let beeCount = CONFIG.BEE_COUNT;
+        let beeSpeed = CONFIG.BEE_SPEED;
+        let spacePressed = false;
+        
+        // Input handling
+        const keys = {};
+        const mousePos = { x: 400, y: 300 };
+        
+        // =====================================
+        // AUDIO SYSTEM
+        // =====================================
+        
+        /** Audio context for Web Audio API */
+        let audioContext = null;
+        
+        /** Whether audio system has been initialized */
+        let audioInitialized = false;
+        
+        /** Master volume control (0.0 to 1.0) */
+        let masterVolume = CONFIG.MASTER_VOLUME;
+        
+        /** Music volume control (0.0 to 1.0) */
+        let musicVolume = CONFIG.MUSIC_VOLUME;
+        
+        /** Whether audio is muted */
+        let audioMuted = false;
+        
+        /** Whether music is muted */
+        let musicMuted = false;
+        
+        /** Current background music source */
+        let currentMusicSource = null;
+        
+        /** Music gain node for volume control */
+        let musicGainNode = null;
+        
+        /** Master gain node for all audio */
+        let masterGainNode = null;
+        
+        /** 
+         * Audio bank - stores all game sound effects
+         * Uses procedurally generated sounds to avoid external file dependencies
+         */
+        const sounds = {
+            // Tongue shoot sound
+            tongueShoot: null,
+            
+            // Fly catch sound
+            flyCatch: null,
+            
+            // Bee sting/collision
+            beeHit: null,
+            
+            // Powerup collect
+            powerupGet: null,
+            
+            // Level complete
+            levelComplete: null,
+            
+            // Game over
+            gameOver: null,
+            
+            // Background music tracks
+            backgroundMusic: null,
+            hardModeMusic: null
+        };
+        
+        // =====================================
+        // UI ELEMENT REFERENCES
+        // =====================================
+        
+        /** Main game screens */
+        const titleScreen = document.getElementById('titleScreen');
+        const transitionScreen = document.getElementById('transitionScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const uiOverlay = document.getElementById('uiOverlay');
+        
+        /** Interactive UI elements */
+        const powerupDisplay = document.getElementById('powerupDisplay');
+        const stunnedText = document.getElementById('stunnedText');
+        const homeButton = document.getElementById('homeButton');
+        
+        /** Frog customization controls */
+        const prevColorBtn = document.getElementById('prevColor');
+        const nextColorBtn = document.getElementById('nextColor');
+        const colorNameSpan = document.getElementById('colorName');
+        const audioToggleBtn = document.getElementById('audioToggle');
+        const musicToggleBtn = document.getElementById('musicToggle');
+        
+        /** Confirmation modal elements */
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmYesBtn = document.getElementById('confirmYes');
+        const confirmNoBtn = document.getElementById('confirmNo');
+        
+        /** Cached DOM elements used every frame */
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const gameOverTitle = document.getElementById('gameOverTitle');
+        const gameOverSubtext = document.getElementById('gameOverSubtext');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        
+        // =====================================
+        // EVENT LISTENERS
+        // =====================================
+        
+        // Game state management
+        let gamePaused = false;
+        let pausedGameState = null;
+        
+        /**
+         * Handle key press events for movement and tongue shooting
+         * Prevents key repeat spam and manages space key state
+         */
+        document.addEventListener('keydown', (e) => {
+            if (!keys[e.code]) {
+                keys[e.code] = true;
+                if (e.code === 'Space') {
+                    e.preventDefault(); // Prevent page scrolling
+                    spacePressed = true;
+                }
+            }
+        });
+        
+        /**
+         * Handle key release events
+         */
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+            if (e.code === 'Space') {
+                spacePressed = false;
+            }
+        });
+        
+        /**
+         * Track mouse position for frog rotation targeting
+         */
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            if (gameState === 'playing' && !tongue.active) {
+                const rect = canvas.getBoundingClientRect();
+                mousePos.x = e.clientX - rect.left;
+                mousePos.y = e.clientY - rect.top;
+                
+                // Shoot tongue
+                tongue.active = true;
+                tongue.length = 0;
+                tongue.angle = Math.atan2(mousePos.y - frog.y, mousePos.x - frog.x);
+                
+                // Play tongue shoot sound
+                playSound(sounds.tongueShoot, 0.8);
+            }
+        });
+        
+        // Specific click handlers for the screens
+        titleScreen.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gameState === 'title') {
+                startGame();
+            }
+        });
+        
+        transitionScreen.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gameState === 'transition') {
+                enterHardMode();
+            }
+        });
+        
+        gameOverScreen.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gameState === 'gameOver' || gameState === 'gameWon') {
+                resetGame();
+            }
+        });
+        
+        // Frog customization handlers
+        prevColorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedFrogColor = (selectedFrogColor - 1 + frogColors.length) % frogColors.length;
+            updateColorDisplay();
+        });
+        
+        nextColorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedFrogColor = (selectedFrogColor + 1) % frogColors.length;
+            updateColorDisplay();
+        });
+        
+        // Home button handler
+        homeButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const confirmed = await showConfirmDialog('Are you sure? This will restart your game progress.');
+            if (confirmed) {
+                goToTitleScreen();
+            }
+        });
+        
+        // Audio toggle button handler
+        audioToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAudio();
+            audioToggleBtn.textContent = audioMuted ? '🔇 Audio' : '🔊 Audio';
+        });
+        
+        // Music toggle button handler
+        musicToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMusic();
+            musicToggleBtn.textContent = musicMuted ? '🔇 Music' : '🎵 Music';
+        });
+        
+        // Pause game when tab loses focus
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Tab is hidden - pause if playing
+                if (gameState === 'playing') {
+                    gamePaused = true;
+                    pausedGameState = gameState;
+                    gameState = 'paused';
+                    pauseOverlay.classList.remove('hidden');
+                }
+            } else {
+                // Tab is visibler, esume if paused
+                if (gamePaused && pausedGameState === 'playing') {
+                    gamePaused = false;
+                    gameState = pausedGameState;
+                    pausedGameState = null;
+                    pauseOverlay.classList.add('hidden');
+                }
+            }
+        });
+        
+        // Allow clicking pause overlay to resume
+        pauseOverlay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gamePaused && pausedGameState === 'playing') {
+                gamePaused = false;
+                gameState = pausedGameState;
+                pausedGameState = null;
+                pauseOverlay.classList.add('hidden');
+            }
+        });
+        
+        // =====================================
+        // UTILITY FUNCTIONS
+        // =====================================
+        
+        /**
+         * Check if a position is within the circular lilypad boundary
+         * @param {number} x - X coordinate to check
+         * @param {number} y - Y coordinate to check
+         * @param {number} radius, Object radius for collision padding
+         * @returns {boolean} True if position is inside lilypad
+         */
+        function isInsideLilypad(x, y, radius = 0) {
+            const dx = x - lilypadCenter.x;
+            const dy = y - lilypadCenter.y;
+            return Math.sqrt(dx * dx + dy * dy) <= (lilypadRadius - radius);
+        }
+        
+        /**
+         * Create particle explosion effect when a fly is caught
+         * @param {number} x - X position of the fly
+         * @param {number} y - Y position of the fly
+         */
+        function createFlyParticles(x, y) {
+            const particleCount = 4 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
+                const speed = 1 + Math.random() * 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 30,
+                    maxLife: 30,
+                    size: 2 + Math.random() * 2
+                });
+            }
+        }
+        
+        /**
+         * Update the frog color display in the customization UI
+         * Applies special rainbow text effect for the Rainbow option
+         */
+        function updateColorDisplay() {
+            const colorName = frogColors[selectedFrogColor].name;
+            colorNameSpan.textContent = colorName;
+            
+            if (colorName === 'Rainbow') {
+                colorNameSpan.classList.add('rainbow-text');
+            } else {
+                colorNameSpan.classList.remove('rainbow-text');
+            }
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function getRainbowColor(time, offset = 0) {
+            // Create rainbow colors by cycling through hue
+            const hue = ((time * 0.0003 + offset) * 360) % 360;
+            return `hsl(${hue}, 70%, 55%)`;
+        }
+        
+        function getRainbowColorLight(time, offset = 0) {
+            // Lighter version for gradient
+            const hue = ((time * 0.0003 + offset) * 360) % 360;
+            return `hsl(${hue}, 70%, 65%)`;
+        }
+        
+        function getRainbowColorDark(time, offset = 0) {
+            // Darker version for legs
+            const hue = ((time * 0.0003 + offset) * 360) % 360;
+            return `hsl(${hue}, 70%, 45%)`;
+        }
+        
+        /**
+         * Show confirmation dialog with custom message
+         * @param {string} message - Message to display
+         * @returns {Promise<boolean>} Promise that resolves to true if confirmed
+         */
+        function showConfirmDialog(message) {
+            return new Promise((resolve) => {
+                confirmMessage.textContent = message;
+                confirmModal.classList.remove('hidden');
+                
+                const handleYes = (e) => {
+                    e.stopPropagation();
+                    confirmModal.classList.add('hidden');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+                
+                const handleNo = (e) => {
+                    e.stopPropagation();
+                    confirmModal.classList.add('hidden');
+                    confirmYesBtn.removeEventListener('click', handleYes);
+                    confirmNoBtn.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+                
+                confirmYesBtn.addEventListener('click', handleYes);
+                confirmNoBtn.addEventListener('click', handleNo);
+            });
+        }
+        
+        function constrainToLilypad(obj) {
+            const dx = obj.x - lilypadCenter.x;
+            const dy = obj.y - lilypadCenter.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance + obj.radius > lilypadRadius) {
+                const angle = Math.atan2(dy, dx);
+                const maxDistance = lilypadRadius - obj.radius;
+                obj.x = lilypadCenter.x + Math.cos(angle) * maxDistance;
+                obj.y = lilypadCenter.y + Math.sin(angle) * maxDistance;
+            }
+        }
+        
+        function circleCollision(obj1, obj2) {
+            const dx = obj1.x - obj2.x;
+            const dy = obj1.y - obj2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < (obj1.radius + obj2.radius);
+        }
+
+        // =====================================
+        // AUDIO FUNCTIONS
+        // =====================================
+        
+        /**
+         * Initialize the audio system
+         * Creates audio context and generates procedural sound effects
+         */
+        function initializeAudio() {
+            if (audioInitialized) return;
+            
+            try {
+                // Create audio context (with fallback for older browsers)
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Resume audio context in case it's suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // Create master gain node for all audio
+                masterGainNode = audioContext.createGain();
+                masterGainNode.connect(audioContext.destination);
+                masterGainNode.gain.value = audioMuted ? 0 : 1;
+                
+                // Generate all sound effects
+                generateSounds();
+                
+                audioInitialized = true;
+                console.log('Audio system initialized successfully');
+            } catch (error) {
+                console.warn('Audio not supported in this browser:', error);
+                audioMuted = true;
+            }
+        }
+        
+        /**
+         * Generate procedural sound effects using Web Audio API
+         * Creates all game sounds without requiring external files
+         */
+        function generateSounds() {
+            if (!audioContext) return;
+            
+            // Tongue shoot sound, quick pop
+            sounds.tongueShoot = createTongueSound();
+            
+            // Fly catch sound, gulp
+            sounds.flyCatch = createFlySound();
+            
+            // Bee hit sound
+            sounds.beeHit = createBeeSound();
+            
+            // Powerup sound, cool chime
+            sounds.powerupGet = createPowerupSound();
+            
+            // Level complete, success chime
+            sounds.levelComplete = createLevelCompleteSound();
+            
+            // Game over, womp womp like sound
+            sounds.gameOver = createGameOverSound();
+            
+            // Background music tracks
+            sounds.backgroundMusic = createBackgroundMusic();
+            sounds.hardModeMusic = createHardModeMusic();
+        }
+        
+        /**
+         * Create tongue shooting sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createTongueSound() {
+            const duration = 0.15;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                // Quick pop with frequency sweep
+                const frequency = 200 + (1000 * Math.exp(-t * 20));
+                const envelope = Math.exp(-t * 15);
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Create fly catch sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createFlySound() {
+            const duration = 0.25;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                // Gulp sound with low frequency
+                const frequency = 80 + (50 * Math.sin(t * 30));
+                const envelope = Math.exp(-t * 8) * (1 - t / duration);
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.4;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Create bee collision sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createBeeSound() {
+            const duration = 0.3;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                const frequency = 150 + (100 * Math.sin(t * 15));
+                const envelope = Math.exp(-t * 3);
+                const buzz = Math.sin(2 * Math.PI * frequency * t);
+                data[i] = Math.tanh(buzz * 3) * envelope * 0.3;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Create powerup collect sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createPowerupSound() {
+            const duration = 0.4;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                // cool chime
+                const frequency = 400 + (800 * t * t);
+                const envelope = Math.exp(-t * 2) * Math.sin(t * 8);
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Create level complete sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createLevelCompleteSound() {
+            const duration = 0.8;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                // Success chime with major chord
+                const freq1 = 523 * Math.exp(-t * 1); // C
+                const freq2 = 659 * Math.exp(-t * 1); // E
+                const freq3 = 784 * Math.exp(-t * 1); // G
+                const envelope = Math.exp(-t * 2);
+                const chord = (Math.sin(2 * Math.PI * freq1 * t) + 
+                              Math.sin(2 * Math.PI * freq2 * t) + 
+                              Math.sin(2 * Math.PI * freq3 * t)) / 3;
+                data[i] = chord * envelope * 0.2;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Create game over sound effect
+         * @returns {AudioBuffer} Generated audio buffer
+         */
+        function createGameOverSound() {
+            const duration = 1.0;
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < data.length; i++) {
+                const t = i / sampleRate;
+                // Sad descending type sound
+                const frequency = 200 * Math.exp(-t * 2);
+                const envelope = Math.exp(-t * 1.5);
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.25;
+            }
+            return buffer;
+        }
+        
+        /**
+         * Play a sound effect with volume control
+         * @param {AudioBuffer} soundBuffer - The sound to play
+         * @param {number} volume - Volume multiplier (0.0 to 1.0)
+         */
+        function playSound(soundBuffer, volume = 1.0) {
+            if (!audioContext || !soundBuffer || !masterGainNode) return;
+            
+            try {
+                const source = audioContext.createBufferSource();
+                const gainNode = audioContext.createGain();
+                
+                source.buffer = soundBuffer;
+                gainNode.gain.value = masterVolume * volume;
+                
+                source.connect(gainNode);
+                gainNode.connect(masterGainNode);
+                
+                source.start();
+            } catch (error) {
+                console.warn('Error playing sound:', error);
+            }
+        }
+        
+        /**
+         * Toggle audio mute state
+         */
+        function toggleAudio() {
+            audioMuted = !audioMuted;
+            if (masterGainNode) {
+                masterGainNode.gain.value = audioMuted ? 0 : 1;
+            }
+            console.log('Audio ' + (audioMuted ? 'muted' : 'unmuted'));
+        }
+        
+        /**
+         * Set master volume
+         * @param {number} volume - Volume level (0.0 to 1.0)
+         */
+        function setVolume(volume) {
+            masterVolume = Math.max(0, Math.min(1, volume));
+        }
+
+        /**
+         * Create some peaceful pond background music
+         * @returns {AudioBuffer} Generated audio buffer for looping
+         */
+        function createBackgroundMusic() {
+            const duration = 8.0; // 8-second loop
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(2, duration * sampleRate, sampleRate); // Stereo
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const loopT = (t % duration) / duration; // Normalize to 0-1 for seamless loop
+                    
+                    // Base ambient pad (gentle sine waves)
+                    const pad1 = Math.sin(2 * Math.PI * 110 * t) * 0.15; // A2
+                    const pad2 = Math.sin(2 * Math.PI * 165 * t) * 0.12; // E3
+                    const pad3 = Math.sin(2 * Math.PI * 220 * t) * 0.10; // A3
+                    
+                    // Gentle melody
+                    const melodyFreqs = [220, 247, 277, 330, 277, 247]; // A-B-C#-E-C#-B
+                    const melodyIndex = Math.floor(loopT * melodyFreqs.length);
+                    const melodyFreq = melodyFreqs[melodyIndex];
+                    const melody = Math.sin(2 * Math.PI * melodyFreq * t) * 0.08;
+                    
+                    // Waterlike texture? (filtered noise)
+                    const noise = (Math.random() - 0.5) * 0.02;
+                    const filteredNoise = noise * Math.sin(t * 0.5); // Low-pass effect
+                    
+                    // Gentle percussion
+                    const dropTiming = (t * 2) % 1;
+                    const drop = dropTiming < 0.1 ? Math.exp(-dropTiming * 20) * Math.sin(t * 800) * 0.03 : 0;
+                    
+                    // Pan slightly for stereo effect
+                    const pan = channel === 0 ? 0.9 : 1.1;
+                    
+                    // Combine all elements
+                    data[i] = (pad1 + pad2 + pad3 + melody + filteredNoise + drop) * pan * 0.3;
+                }
+            }
+            return buffer;
+        }
+
+        /**
+         * Create intense hard mode background music
+         * @returns {AudioBuffer} Generated audio buffer for looping
+         */
+        function createHardModeMusic() {
+            const duration = 6.0; // 6-second loop for more anxiety
+            const sampleRate = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(2, duration * sampleRate, sampleRate);
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const loopT = (t % duration) / duration;
+                    
+                    // more intense bass
+                    const bass1 = Math.sin(2 * Math.PI * 55 * t) * 0.2; // A1
+                    const bass2 = Math.sin(2 * Math.PI * 73.4 * t) * 0.15; // D2
+                    
+                    // Dissonant harmony
+                    const harm1 = Math.sin(2 * Math.PI * 146.8 * t) * 0.12; // D3
+                    const harm2 = Math.sin(2 * Math.PI * 196 * t) * 0.10; // G3
+                    
+                    // Aggressive melody
+                    const aggressiveMelody = Math.sin(2 * Math.PI * (220 + Math.sin(t * 0.5) * 50) * t) * 0.08;
+                    
+                    // crackling effect?
+                    const crackle = (Math.random() - 0.5) * 0.05 * Math.sin(t * 15);
+                    
+                    // Intense percussion
+                    const beatTiming = (t * 4) % 1;
+                    const beat = beatTiming < 0.05 ? Math.exp(-beatTiming * 40) * Math.sin(t * 200) * 0.1 : 0;
+                    
+                    // Pan for stereo effect
+                    const pan = channel === 0 ? 0.8 : 1.2;
+                    
+                    data[i] = (bass1 + bass2 + harm1 + harm2 + aggressiveMelody + crackle + beat) * pan * 0.35;
+                }
+            }
+            return buffer;
+        }
+
+        /**
+         * Start playing background music with looping
+         * @param {AudioBuffer} musicBuffer - The music to play
+         */
+        function playBackgroundMusic(musicBuffer) {
+            if (!audioContext || musicMuted || !musicBuffer || !masterGainNode) return;
+            
+            // Stop current music if playing
+            stopBackgroundMusic();
+            
+            try {
+                currentMusicSource = audioContext.createBufferSource();
+                musicGainNode = audioContext.createGain();
+                
+                currentMusicSource.buffer = musicBuffer;
+                currentMusicSource.loop = true; // Enable looping
+                musicGainNode.gain.value = musicVolume;
+                
+                currentMusicSource.connect(musicGainNode);
+                musicGainNode.connect(masterGainNode);
+                
+                currentMusicSource.start();
+                console.log('Background music started');
+            } catch (error) {
+                console.warn('Error playing background music:', error);
+            }
+        }
+
+        /**
+         * Stop the current background music
+         */
+        function stopBackgroundMusic() {
+            if (currentMusicSource) {
+                try {
+                    currentMusicSource.stop();
+                } catch (error) {
+                    // Music may already be stopped
+                }
+                currentMusicSource = null;
+            }
+        }
+
+        /**
+         * Toggle background music mute state
+         */
+        function toggleMusic() {
+            musicMuted = !musicMuted;
+            if (musicGainNode) {
+                musicGainNode.gain.value = musicMuted ? 0 : musicVolume;
+            }
+            console.log('Music ' + (musicMuted ? 'muted' : 'unmuted'));
+        }
+
+        /**
+         * Set music volume
+         * @param {number} volume - Volume level (0.0 to 1.0)
+         */
+        function setMusicVolume(volume) {
+            musicVolume = Math.max(0, Math.min(1, volume));
+            if (musicGainNode) {
+                musicGainNode.gain.value = musicMuted ? 0 : musicVolume;
+            }
+        }
+        
+        
+        /**
+         * Star drawing function for powerups
+         * @param {number} x - X position
+         * @param {number} y - Y position  
+         * @param {number} size - Star size
+         * @param {string} color - Star color
+         * @param {number} time - Current time for animation
+         */
+        function drawStar(x, y, size, color, time = Date.now()) {
+            const rotation = (time * 0.003) % (Math.PI * 2);
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            
+            // Simple solid fill
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            
+            // Pre-calculated 8-point star path
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const radius = (i % 2 === 0) ? size : size * 0.6;
+                const angle = (i * Math.PI) / 4;
+                const pointX = Math.cos(angle) * radius;
+                const pointY = Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(pointX, pointY);
+                else ctx.lineTo(pointX, pointY);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function createConfetti() {
+            // Create rainbow particles that burst from the frog's position
+            const colors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#0080ff', '#8000ff', '#ff0080'];
+            
+            for (let i = 0; i < 20; i++) {
+                const angle = (Math.PI * 2 * i) / 20 + Math.random() * 0.5;
+                const speed = 2 + Math.random() * 3;
+                const size = 3 + Math.random() * 4;
+                
+                particles.push({
+                    x: frog.x,
+                    y: frog.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 60, // frames
+                    maxLife: 60,
+                    size: size,
+                    color: colors[i % colors.length],
+                    isConfetti: true
+                });
+            }
+        }
+
+        function updateEyePhysics() {
+            // Physics constants for bouncy eye movement
+            const stiffness = 0.15; // How quickly eyes follow the target
+            const damping = 0.7;    // How much bounce/oscillation
+            
+            // Set target angle to frog's current angle
+            frog.eyeTargetAngle = frog.angle;
+            
+            // Calculate angle difference (handling wrap-around)
+            let angleDiff = frog.eyeTargetAngle - frog.eyeAngle;
+            
+            // Normalize angle difference to [-PI, PI]
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+            
+            // Spring physics for smooth, bouncy movement
+            const springForce = angleDiff * stiffness;
+            frog.eyeVelocity += springForce;
+            frog.eyeVelocity *= damping;
+            
+            // Update eye angle
+            frog.eyeAngle += frog.eyeVelocity;
+            
+            // Normalize eye angle
+            while (frog.eyeAngle > Math.PI * 2) frog.eyeAngle -= Math.PI * 2;
+            while (frog.eyeAngle < 0) frog.eyeAngle += Math.PI * 2;
+        }
+
+            
+        
+        // =====================================
+        // GAME STATE MANAGEMENT FUNCTIONS
+        // =====================================
+        
+        /**
+         * Initialize and start a new game session
+         * Transitions from title screen to gameplay state
+         */
+        function startGame() {
+            // Initialize audio on first user interaction
+            initializeAudio();
+            
+            gameState = 'playing';
+            gameStartTime = Date.now();
+            
+            // Update UI visibility
+            titleScreen.classList.add('hidden');
+            uiOverlay.classList.remove('hidden');
+            homeButton.classList.remove('hidden');
+            
+            // Start background music
+            playBackgroundMusic(sounds.backgroundMusic);
+            
+            // Spawn initial game entities
+            spawnFlies(initialFlies);
+            spawnBees(beeCount);
+        }
+        
+        /**
+         * Activate hard mode after completing level 5
+         * Increases difficulty with faster enemies and enhanced effects
+         */
+        function enterHardMode() {
+            isHardMode = true;
+            gameState = 'playing';
+            transitionScreen.classList.add('hidden');
+            
+            // Switch to hard mode music
+            playBackgroundMusic(sounds.hardModeMusic);
+            
+            // Increase difficulty parameters
+            flySpeed += 1.0;
+            beeSpeed = CONFIG.BEE_SPEED_HARD;
+            beeCount = CONFIG.BEE_COUNT;
+            
+            // Reset and respawn enemies with new difficulty
+            bees.length = 0;
+            spawnBees(beeCount);
+        }
+        
+        function resetGame() {
+            score = 0;
+            level = 1;
+            isHardMode = false;
+            gameStartTime = Date.now();
+            gameTime = 0;
+            
+            // Reset frog
+            Object.assign(frog, { 
+                x: 370, 
+                y: 270, 
+                radius: CONFIG.FROG_RADIUS, 
+                speed: CONFIG.FROG_SPEED, 
+                angle: 0,
+                // Eye physics
+                eyeAngle: 0,
+                eyeVelocity: 0,
+                eyeTargetAngle: 0
+            });
+            flies.length = 0;
+            bees.length = 0;
+            Object.assign(tongue, { active: false, x: 0, y: 0, length: 0, maxLength: CONFIG.TONGUE_MAX_LENGTH, speed: CONFIG.TONGUE_SPEED, angle: 0, startX: 0, startY: 0 });
+            powerups.length = 0;
+            Object.assign(activePowerup, { type: '', timer: 0, duration: CONFIG.POWERUP_DURATION });
+            particles.length = 0;
+            ashParticles.length = 0;
+            flySpeed = CONFIG.FLY_SPEED;
+            initialFlies = CONFIG.INITIAL_FLIES;
+            beeCount = CONFIG.BEE_COUNT;
+            beeSpeed = CONFIG.BEE_SPEED;
+            
+            // Reset pause state and start playing immediately
+            gamePaused = false;
+            pausedGameState = null;
+            gameState = 'playing';
+            
+            // Update UI visibility
+            titleScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            uiOverlay.classList.remove('hidden');
+            homeButton.classList.remove('hidden');
+            powerupDisplay.classList.add('hidden');
+            stunnedText.classList.add('hidden');
+            pauseOverlay.classList.add('hidden');
+            
+            // Start background music
+            playBackgroundMusic(sounds.backgroundMusic);
+            
+            // Spawn initial game entities
+            spawnFlies(initialFlies);
+            spawnBees(beeCount);
+        }
+        
+        function goToTitleScreen() {
+            // Reset pause state
+            gamePaused = false;
+            pausedGameState = null;
+            gameState = 'title';
+            
+            // Stop background music
+            stopBackgroundMusic();
+            
+            // Reset UI to title screen
+            titleScreen.classList.remove('hidden');
+            gameOverScreen.classList.add('hidden');
+            uiOverlay.classList.add('hidden');
+            homeButton.classList.add('hidden');
+            powerupDisplay.classList.add('hidden');
+            stunnedText.classList.add('hidden');
+            pauseOverlay.classList.add('hidden');
+        }
+        
+        function spawnFlies(count) {
+            flies.length = 0;
+            for (let i = 0; i < count; i++) {
+                let x, y;
+                do {
+                    x = Math.random() * 400 + 200;
+                    y = Math.random() * 400 + 100;
+                } while (!isInsideLilypad(x, y, 15));
+                
+                flies.push({
+                    x: x,
+                    y: y,
+                    radius: CONFIG.FLY_RADIUS,
+                    hitboxRadius: CONFIG.FLY_HITBOX_RADIUS, 
+                    vx: (Math.random() - 0.5) * flySpeed,
+                    vy: (Math.random() - 0.5) * flySpeed,
+                    wingOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        
+        function spawnBees(count) {
+            for (let i = bees.length; i < count; i++) {
+                let x, y;
+                do {
+                    x = Math.random() * 600 + 100;
+                    y = Math.random() * 400 + 100;
+                } while (!isInsideLilypad(x, y, 20) || Math.hypot(x - frog.x, y - frog.y) < 100);
+                
+                bees.push({
+                    x: x,
+                    y: y,
+                    radius: CONFIG.BEE_RADIUS,
+                    speed: beeSpeed,
+                    targetX: x,
+                    targetY: y,
+                    angle: 0,
+                    chaseTimer: 0,
+                    isAway: false,
+                    awayTimer: 0,
+                    awayDuration: 0,
+                    flyingAway: false,
+                    awayTargetX: 0,
+                    awayTargetY: 0
+                });
+            }
+        }
+        
+        function spawnPowerup() {
+            if (powerups.length < 1 && Math.random() < 0.3) {
+                const types = ['longTongue', 'beeShield', 'speedBoost'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                let x, y;
+                do {
+                    x = Math.random() * 400 + 200;
+                    y = Math.random() * 400 + 100;
+                } while (!isInsideLilypad(x, y, 20));
+                
+                powerups.push({
+                    x: x,
+                    y: y,
+                    radius: CONFIG.POWERUP_RADIUS,
+                    type: type
+                });
+            }
+        }
+        
+        // =====================================
+        // MAIN GAME UPDATE LOOP
+        // =====================================
+        
+        /**
+         * Main game update function - handles all game logic per frame
+         * Processes input, physics, collisions, AI, and game state changes
+         */
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            const currentTime = Date.now();
+            
+            // ===== INPUT PROCESSING =====
+            if (keys['KeyA']) frog.x -= frog.speed;
+            if (keys['KeyD']) frog.x += frog.speed;
+            if (keys['KeyW']) frog.y -= frog.speed;
+            if (keys['KeyS']) frog.y += frog.speed;
+            
+            // ===== FROG PHYSICS & ANIMATION =====
+            constrainToLilypad(frog);
+            
+            // Update frog rotation to face cursor
+            const dx = mousePos.x - frog.x;
+            const dy = mousePos.y - frog.y;
+            frog.angle = Math.atan2(dy, dx);
+            
+            // Update eye physics for lag and bounce effects
+            updateEyePhysics();
+            
+            // ===== TONGUE MECHANICS =====
+            if (spacePressed && !tongue.active) {
+                tongue.active = true;
+                tongue.length = 0;
+                tongue.angle = Math.atan2(mousePos.y - frog.y, mousePos.x - frog.x);
+                spacePressed = false; // Consume the press
+                
+                // Play tongue shoot sound
+                playSound(sounds.tongueShoot, 0.8);
+            }
+            
+            if (tongue.active) {
+                tongue.length += tongue.speed;
+                if (tongue.length > tongue.maxLength) {
+                    tongue.active = false;
+                } else {
+                    // Tongue always starts from current frog position and uses frog's angle
+                    tongue.startX = frog.x;
+                    tongue.startY = frog.y;
+                    tongue.x = tongue.startX + tongue.length * Math.cos(tongue.angle);
+                    tongue.y = tongue.startY + tongue.length * Math.sin(tongue.angle);
+                    
+                    // Check fly collision
+                    for (let i = flies.length - 1; i >= 0; i--) {
+                        const fly = flies[i];
+                        const dx = fly.x - tongue.x;
+                        const dy = fly.y - tongue.y;
+                        if (Math.sqrt(dx*dx + dy*dy) < fly.hitboxRadius + 3) {
+                            // Create particles at fly position
+                            createFlyParticles(fly.x, fly.y);
+                            flies.splice(i, 1);
+                            score++;
+                            tongue.active = false;
+                            
+                            // Play fly catch sound
+                            playSound(sounds.flyCatch, 0.9);
+                            break;
+                        }
+                    }
+                    
+                    // Check bee collision with tongue
+                    for (let i = 0; i < bees.length; i++) {
+                        const bee = bees[i];
+                        const dx = bee.x - tongue.x;
+                        const dy = bee.y - tongue.y;
+                        if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                            // Skip game over if bee shield is active
+                            if (activePowerup.type === 'beeShield') {
+                                tongue.active = false;
+                                return;
+                            }
+                            // Play bee hit sound
+                            playSound(sounds.beeHit, 1.0);
+                            gameOver();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // ===== FLY AI & PHYSICS =====
+            flies.forEach(fly => {
+                // Check if next position would be outside lilypad
+                const nextX = fly.x + fly.vx;
+                const nextY = fly.y + fly.vy;
+                
+                if (!isInsideLilypad(nextX, nextY, fly.radius)) {
+                    // Calculate reflection off circular boundary
+                    const dx = fly.x - lilypadCenter.x;
+                    const dy = fly.y - lilypadCenter.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Normal vector at collision point
+                    const normalX = dx / distance;
+                    const normalY = dy / distance;
+                    
+                    // Reflect velocity vector
+                    const dotProduct = fly.vx * normalX + fly.vy * normalY;
+                    fly.vx = fly.vx - 2 * dotProduct * normalX;
+                    fly.vy = fly.vy - 2 * dotProduct * normalY;
+                    
+                    // Ensure fly stays inside boundary
+                    const maxDistance = lilypadRadius - fly.radius;
+                    if (distance >= maxDistance) {
+                        fly.x = lilypadCenter.x + normalX * (maxDistance - 1);
+                        fly.y = lilypadCenter.y + normalY * (maxDistance - 1);
+                    }
+                }
+                
+                fly.x += fly.vx;
+                fly.y += fly.vy;
+                fly.wingOffset += 0.3;
+                
+                // Final safety constraint
+                constrainToLilypad(fly);
+            });
+            
+            // ===== BEE AI & BEHAVIOR =====
+            bees.forEach(bee => {
+                // Handle leaving and returning behavior
+                if (!bee.isAway && !bee.flyingAway && Math.random() < 0.002) { // Small chance to leave each frame
+                    bee.flyingAway = true;
+                    bee.awayDuration = 300 + Math.random() * 300; // 5-10 seconds at 60fps
+                    // Pick a random point outside the lilypad to fly to
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = lilypadRadius + 100 + Math.random() * 200;
+                    bee.awayTargetX = lilypadCenter.x + Math.cos(angle) * distance;
+                    bee.awayTargetY = lilypadCenter.y + Math.sin(angle) * distance;
+                }
+                
+                if (bee.flyingAway) {
+                    // Fly towards the away target
+                    const dx = bee.awayTargetX - bee.x;
+                    const dy = bee.awayTargetY - bee.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 10) {
+                        bee.x += (dx / distance) * bee.speed * 1.5; // Fly faster when leaving
+                        bee.y += (dy / distance) * bee.speed * 1.5;
+                    } else {
+                        // Reached away position, start timer
+                        bee.flyingAway = false;
+                        bee.isAway = true;
+                        bee.awayTimer = 0;
+                    }
+                } else if (bee.isAway) {
+                    bee.awayTimer++;
+                    if (bee.awayTimer >= bee.awayDuration) {
+                        bee.isAway = false;
+                        // Set target to fly back to lilypad edge
+                        const angle = Math.random() * Math.PI * 2;
+                        const spawnDistance = lilypadRadius - bee.radius - 10;
+                        bee.targetX = lilypadCenter.x + Math.cos(angle) * spawnDistance;
+                        bee.targetY = lilypadCenter.y + Math.sin(angle) * spawnDistance;
+                    } else {
+                        // Bee is away, don't move it normally
+                        return;
+                    }
+                }
+                
+                if (isHardMode) {
+                    // Chase frog but with some randomness to make it less impossible
+                    bee.chaseTimer++;
+                    if (bee.chaseTimer > 120) { // 2 seconds at 60fps
+                        if (Math.random() < 0.7) { // 70% chance to chase frog
+                            bee.targetX = frog.x;
+                            bee.targetY = frog.y;
+                        } else { // 30% chance to move randomly
+                            do {
+                                bee.targetX = Math.random() * 400 + 200;
+                                bee.targetY = Math.random() * 400 + 100;
+                            } while (!isInsideLilypad(bee.targetX, bee.targetY, bee.radius));
+                        }
+                        bee.chaseTimer = 0;
+                    }
+                    
+                    const dx = bee.targetX - bee.x;
+                    const dy = bee.targetY - bee.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 5) {
+                        bee.x += (dx / distance) * bee.speed;
+                        bee.y += (dy / distance) * bee.speed;
+                    }
+                } else {
+                    // Random movement with occasional frog targeting
+                    bee.chaseTimer++;
+                    if (bee.chaseTimer > 180) { // 3 seconds at 60fps
+                        if (Math.random() < 0.3) {
+                            bee.targetX = frog.x;
+                            bee.targetY = frog.y;
+                        } else {
+                            do {
+                                bee.targetX = Math.random() * 400 + 200;
+                                bee.targetY = Math.random() * 400 + 100;
+                            } while (!isInsideLilypad(bee.targetX, bee.targetY, bee.radius));
+                        }
+                        bee.chaseTimer = 0;
+                    }
+                    
+                    const dx = bee.targetX - bee.x;
+                    const dy = bee.targetY - bee.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 5) {
+                        bee.x += (dx / distance) * bee.speed;
+                        bee.y += (dy / distance) * bee.speed;
+                    }
+                }
+                
+                bee.angle += 0.1;
+                
+                // Only constrain bees to lilypad if they're not flying away
+                if (!bee.flyingAway && !bee.isAway) {
+                constrainToLilypad(bee);
+                }
+            });
+            
+            // ===== COLLISION DETECTION =====
+            if (activePowerup.type !== 'beeShield') {
+                for (let i = 0; i < bees.length; i++) {
+                    if (!bees[i].isAway && !bees[i].flyingAway && circleCollision(frog, bees[i])) {
+                        // Play bee hit sound
+                        playSound(sounds.beeHit, 1.0);
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+            
+            // Handle powerups
+            for (let i = powerups.length - 1; i >= 0; i--) {
+                const powerup = powerups[i];
+                if (circleCollision(frog, powerup)) {
+                    activePowerup.type = powerup.type;
+                    activePowerup.timer = currentTime;
+                    
+                    if (powerup.type === 'longTongue') {
+                        tongue.maxLength = CONFIG.TONGUE_MAX_LENGTH_LONG;
+                    } else if (powerup.type === 'speedBoost') {
+                        frog.speed = CONFIG.FROG_SPEED_BOOSTED;
+                    }
+                    
+                    // Play powerup collect sound
+                    playSound(sounds.powerupGet, 0.7);
+                    powerups.splice(i, 1);
+                }
+            }
+            
+            // Handle powerup expiration
+            if (activePowerup.type && currentTime - activePowerup.timer > activePowerup.duration) {
+                if (activePowerup.type === 'longTongue') {
+                    tongue.maxLength = CONFIG.TONGUE_MAX_LENGTH;
+                } else if (activePowerup.type === 'speedBoost') {
+                    frog.speed = CONFIG.FROG_SPEED;
+                }
+                activePowerup.type = '';
+            }
+            
+            // Check level completion
+            if (flies.length === 0) {
+                level++;
+                createConfetti(); // Celebrate level completion
+                
+                // Play level complete sound
+                playSound(sounds.levelComplete, 0.6);
+                
+                if (level === CONFIG.HARD_MODE_LEVEL && !isHardMode) {
+                    gameState = 'transition';
+                    transitionScreen.classList.remove('hidden');
+                } else if (level === CONFIG.WIN_LEVEL) {
+                    gameWon();
+                } else {
+                    initialFlies = Math.min(CONFIG.MAX_FLIES, initialFlies + 1);
+                    flySpeed += 0.3;
+                    if (level > 5) {
+                        beeCount = isHardMode ? CONFIG.BEE_COUNT : Math.min(CONFIG.MAX_BEES, Math.floor(level / 3));
+                    }
+                    spawnFlies(initialFlies);
+                    spawnBees(beeCount);
+                    spawnPowerup();
+                }
+            }
+            
+            // Update UI
+            if (gameStartTime > 0) {
+                gameTime = (Date.now() - gameStartTime) / 1000;
+                timeDisplay.textContent = `Time: ${formatTime(gameTime)}`;
+            }
+            scoreDisplay.textContent = `Score: ${score}`;
+            levelDisplay.textContent = `Level: ${level}`;
+            
+            if (activePowerup.type) {
+                const remaining = Math.max(0, Math.ceil((activePowerup.duration - (currentTime - activePowerup.timer)) / 1000));
+                let displayName = '';
+                let emoji = '';
+                
+                switch(activePowerup.type) {
+                    case 'longTongue':
+                        displayName = 'Long Tongue';
+                        emoji = '';
+                        break;
+                    case 'beeShield':
+                        displayName = 'Bee Shield';
+                        emoji = '';
+                        break;
+                    case 'speedBoost':
+                        displayName = 'Speed Boost';
+                        emoji = '';
+                        break;
+                }
+                
+                if (remaining > 0) {
+                    powerupDisplay.textContent = `${displayName}: ${remaining}s`;
+                    powerupDisplay.classList.remove('hidden');
+                } else {
+                    powerupDisplay.classList.add('hidden');
+                }
+            } else {
+                powerupDisplay.classList.add('hidden');
+            }
+            
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vx *= 0.95;
+                particle.vy *= 0.95;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        function gameOver() {
+            gameState = 'gameOver';
+            gameOverScreen.classList.remove('hidden');
+            
+            // Play game over sound
+            playSound(sounds.gameOver, 0.8);
+            gameOverTitle.textContent = 'The Bees Got You!';
+            gameOverTitle.style.color = '#ff4444';
+            gameOverTitle.style.textShadow = '0 4px 8px rgba(75, 0, 130, 0.4), 0 2px 4px rgba(75, 0, 130, 0.4), 0 0 20px rgba(255, 68, 68, 0.4)';
+            gameOverSubtext.textContent = `You reached level ${level} with ${score} flies caught!`;
+        }
+        
+        function gameWon() {
+            gameState = 'gameWon';
+            const finalTime = (Date.now() - gameStartTime) / 1000;
+            gameOverScreen.classList.remove('hidden');
+            gameOverTitle.textContent = 'POND MASTER!';
+            gameOverTitle.style.color = '#ffdd00';
+            gameOverTitle.style.textShadow = '0 4px 8px rgba(75, 0, 130, 0.4), 0 2px 4px rgba(184, 134, 11, 0.4), 0 0 20px rgba(255, 221, 0, 0.4)';
+            gameOverSubtext.textContent = `You became the pond master in ${formatTime(finalTime)}!`;
+        }
+        
+        /**
+         * Main rendering function - draws all game elements to canvas
+         * Handles background, entities, UI elements, and visual effects
+         */
+        function draw() {
+            // Cache current time for this frame
+            const now = Date.now();
+            
+            // Clear canvas with water/lava background
+            if (isHardMode) {
+                // Lava background
+            const gradient = ctx.createRadialGradient(400, 300, 0, 400, 300, 400);
+                gradient.addColorStop(0, '#FF4500');
+                gradient.addColorStop(0.6, '#CC2200');
+                gradient.addColorStop(1, '#8B0000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+                // Add lava bubbles with better orange/red colors
+                const time = now * 0.0008;
+                for (let i = 0; i < 8; i++) {
+                    const x = 100 + (i % 4) * 200 + Math.sin(time + i) * 30;
+                    const y = 100 + Math.floor(i / 4) * 400 + Math.cos(time + i * 0.7) * 20;
+                    const baseSize = 15 + (i % 3) * 8;
+                    const size = baseSize + Math.sin(time * 1.5 + i) * 6;
+                    
+                    // Better orange-red color variation
+                    const colorVariation = Math.sin(time * 2 + i * 0.5) * 0.5 + 0.5;
+                    const red = Math.floor(255);
+                    const green = Math.floor(69 + colorVariation * 100); // Orange range
+                    ctx.fillStyle = `rgb(${red}, ${green}, 0)`;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Create ash particles
+                if (ashParticles.length < 15) {
+                    for (let i = ashParticles.length; i < 15; i++) {
+                        ashParticles.push({
+                            x: Math.random() * canvas.width,
+                            y: canvas.height + Math.random() * 100,
+                            size: 1 + Math.random() * 3,
+                            speed: 0.3 + Math.random() * 0.7,
+                            opacity: 0.3 + Math.random() * 0.4,
+                            drift: (Math.random() - 0.5) * 0.5
+                        });
+                    }
+                }
+                
+                // Update ash particles (draw them later over everything else)
+                for (let i = ashParticles.length - 1; i >= 0; i--) {
+                    const ash = ashParticles[i];
+                    ash.y -= ash.speed;
+                    ash.x += ash.drift;
+                    ash.opacity *= 0.998;
+                    
+                    if (ash.y < -10 || ash.opacity < 0.1) {
+                        ashParticles[i] = {
+                            x: Math.random() * canvas.width,
+                            y: canvas.height + Math.random() * 100,
+                            size: 1 + Math.random() * 3,
+                            speed: 0.3 + Math.random() * 0.7,
+                            opacity: 0.3 + Math.random() * 0.4,
+                            drift: (Math.random() - 0.5) * 0.5
+                        };
+                    }
+                }
+            } else {
+                // Blue water background
+                const gradient = ctx.createRadialGradient(400, 300, 0, 400, 300, 400);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(0.4, '#4A90E2');
+                gradient.addColorStop(0.8, '#2E86C1');
+                gradient.addColorStop(1, '#1B4F72');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+                        // Draw enhanced ripples
+            if (isHardMode) {
+                // Heat distortion ripples for lava
+                ctx.strokeStyle = 'rgba(255, 150, 50, 0.15)';
+            ctx.lineWidth = 2;
+                for (let i = 0; i < 6; i++) {
+                ctx.beginPath();
+                    const radius = 40 + i * 50 + Math.sin(now * 0.004 + i) * 12;
+                ctx.arc(400, 300, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                }
+                
+                ctx.strokeStyle = 'rgba(255, 100, 0, 0.08)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 8; i++) {
+                    ctx.beginPath();
+                    const radius = 25 + i * 35 + Math.sin(now * 0.006 + i * 0.7) * 8;
+                    ctx.arc(400, 300, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            } else {
+                // Blue water ripples with fading animation
+                const fadePhase = Math.sin(now * 0.005) * 0.5 + 0.5; // 0 to 1
+                
+                ctx.strokeStyle = `rgba(135, 206, 235, ${0.15 + fadePhase * 0.3})`;
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 8; i++) {
+                    ctx.beginPath();
+                    const radius = 30 + i * 45 + Math.sin(now * 0.003 + i) * 8;
+                    ctx.arc(400, 300, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+            }
+            
+            if (gameState !== 'playing') return;
+            
+            // Draw lilypad shadow
+            ctx.save();
+            ctx.shadowColor = 'rgba(75, 0, 130, 0.8)';
+            ctx.shadowBlur = 50;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 8;
+            ctx.fillStyle = 'rgba(75, 0, 130, 0.2)';
+            ctx.beginPath();
+            ctx.arc(lilypadCenter.x, lilypadCenter.y, lilypadRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Draw lilypad
+            const lilyGradient = ctx.createRadialGradient(lilypadCenter.x, lilypadCenter.y, 0, lilypadCenter.x, lilypadCenter.y, lilypadRadius);
+            lilyGradient.addColorStop(0, '#32CD32');
+            lilyGradient.addColorStop(1, '#228B22');
+            
+            ctx.fillStyle = lilyGradient;
+            ctx.beginPath();
+            ctx.arc(lilypadCenter.x, lilypadCenter.y, lilypadRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw lilypad lines with fade effect
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI) / 4;
+                const endX = lilypadCenter.x + Math.cos(angle) * lilypadRadius * 0.8;
+                const endY = lilypadCenter.y + Math.sin(angle) * lilypadRadius * 0.8;
+                
+                // Create gradient for each line that fades from center to tip
+                const lineGradient = ctx.createLinearGradient(
+                    lilypadCenter.x, lilypadCenter.y,
+                    endX, endY
+                );
+                lineGradient.addColorStop(0, '#1F5F1F');
+                lineGradient.addColorStop(0.7, '#1F5F1F');
+                lineGradient.addColorStop(1, 'rgba(31, 95, 31, 0)'); // Fade to transparent
+                
+                ctx.strokeStyle = lineGradient;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(lilypadCenter.x, lilypadCenter.y);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+            
+
+            
+            // Draw tongue underneath frog body
+            if (tongue.active) {
+                ctx.strokeStyle = '#FF69B4';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+            ctx.beginPath();
+                ctx.moveTo(tongue.startX, tongue.startY);
+                ctx.lineTo(tongue.x, tongue.y);
+                ctx.stroke();
+            
+                // Tongue tip
+                ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+                ctx.arc(tongue.x, tongue.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            }
+            
+            // Draw frog with rotation
+            ctx.save();
+            ctx.translate(frog.x, frog.y);
+            
+            // Draw frog shadow
+            ctx.save();
+            ctx.shadowColor = 'rgba(75, 0, 130, 0.8)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 12;
+            ctx.fillStyle = 'rgba(75, 0, 130, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 8, frog.radius, frog.radius * 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Draw legs behind the body (opposite side of eyes)
+            const legAngle1 = frog.angle + Math.PI + 0.5; // Behind and slightly offset
+            const legAngle2 = frog.angle + Math.PI - 0.5; // Behind and slightly offset
+            const legDistance = frog.radius + 8;
+            
+            if (frogColors[selectedFrogColor].legs === 'rainbow') {
+                ctx.fillStyle = getRainbowColorDark(now);
+            } else {
+                ctx.fillStyle = frogColors[selectedFrogColor].legs;
+            }
+            // Left back leg
+            const leg1X = Math.cos(legAngle1) * legDistance;
+            const leg1Y = Math.sin(legAngle1) * legDistance;
+            ctx.beginPath();
+            ctx.ellipse(leg1X, leg1Y, 12, 6, legAngle1 + Math.PI/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right back leg  
+            const leg2X = Math.cos(legAngle2) * legDistance;
+            const leg2Y = Math.sin(legAngle2) * legDistance;
+            ctx.beginPath();
+            ctx.ellipse(leg2X, leg2Y, 12, 6, legAngle2 + Math.PI/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main body (custom color) with subtle gradient
+            const bodyGradient = ctx.createRadialGradient(0, -3, 0, 0, 0, frog.radius);
+            if (frogColors[selectedFrogColor].body === 'rainbow') {
+                bodyGradient.addColorStop(0, getRainbowColorLight(now));
+                bodyGradient.addColorStop(1, getRainbowColor(now));
+            } else {
+                bodyGradient.addColorStop(0, frogColors[selectedFrogColor].bodyLight);
+                bodyGradient.addColorStop(1, frogColors[selectedFrogColor].body);
+            }
+            
+            ctx.fillStyle = bodyGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, frog.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes with physics, stick out from body using physics angle
+            const eyeDistance = 12; // Distance from center
+            const eyeForwardOffset = 18; // How far forward the eyes poke
+            const eyeRadius = 7; // Eye size
+            
+            // Calculate eye positions using physics-based eye angle
+            const frontX = Math.cos(frog.eyeAngle) * eyeForwardOffset;
+            const frontY = Math.sin(frog.eyeAngle) * eyeForwardOffset;
+            const sideX = Math.cos(frog.eyeAngle + Math.PI/2) * eyeDistance;
+            const sideY = Math.sin(frog.eyeAngle + Math.PI/2) * eyeDistance;
+            
+            // Calculate eye positions using physics-based eye angle
+            const leftEyeX = frontX - sideX;
+            const leftEyeY = frontY - sideY;
+            const rightEyeX = frontX + sideX;
+            const rightEyeY = frontY + sideY;
+            
+            // Left eye
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(leftEyeX, leftEyeY, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Left eye highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(leftEyeX - 2, leftEyeY - 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right eye
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(rightEyeX, rightEyeY, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right eye highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(rightEyeX - 2, rightEyeY - 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+            
+            // Draw shield effect if active
+            if (activePowerup.type === 'beeShield') {
+                ctx.strokeStyle = '#00FFFF';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(frog.x, frog.y, frog.radius + 5 + Math.sin(now * 0.01) * 3, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(frog.x, frog.y, frog.radius + 8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Draw flies
+            flies.forEach(fly => {
+                // Fly drop shadow
+                ctx.save();
+                ctx.shadowColor = 'rgba(75, 0, 130, 0.6)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = 'rgba(75, 0, 130, 0.3)';
+                ctx.beginPath();
+                ctx.arc(fly.x, fly.y, fly.radius + 1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // Wings (drawn first, underneath body) - always blue-tinted
+                ctx.fillStyle = 'rgba(200, 200, 255, 0.8)';
+                const wingFlap = Math.sin(fly.wingOffset) * 0.3;
+                ctx.save();
+                ctx.translate(fly.x, fly.y);
+                ctx.rotate(wingFlap);
+                
+                // Left wing
+                ctx.beginPath();
+                ctx.ellipse(-6, -2, 8, 3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Right wing
+                ctx.beginPath();
+                ctx.ellipse(6, -2, 8, 3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // Fly body (drawn on top of wings) - always black
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(fly.x, fly.y, fly.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fly eyes
+                ctx.fillStyle = '#FF0000';
+                ctx.beginPath();
+                ctx.arc(fly.x - 3, fly.y - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(fly.x + 3, fly.y - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw bees
+            bees.forEach(bee => {
+                if (bee.isAway) return; // Don't draw bees that are completely away
+                
+                // Bee body with subtle gradient and shadow
+                const beeGradient = ctx.createRadialGradient(bee.x, bee.y, 0, bee.x, bee.y, bee.radius);
+                if (isHardMode) {
+                    beeGradient.addColorStop(0, '#DD4411');
+                    beeGradient.addColorStop(1, '#CC3300');
+                } else {
+                    beeGradient.addColorStop(0, '#FFB84D');
+                    beeGradient.addColorStop(1, '#FFA500');
+                }
+                
+                // Apply shadow to bee body
+                ctx.save();
+                ctx.shadowColor = 'rgba(75, 0, 130, 0.4)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 4;
+                
+                ctx.fillStyle = beeGradient;
+                ctx.beginPath();
+                ctx.arc(bee.x, bee.y, bee.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // Bee stripes (clipped to bee body)
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(bee.x, bee.y, bee.radius, 0, Math.PI * 2);
+                ctx.clip();
+                
+                ctx.fillStyle = '#000000';
+                for (let i = 0; i < 3; i++) {
+                    const y = bee.y - bee.radius + (i + 1) * (bee.radius * 2 / 4);
+                    ctx.fillRect(bee.x - bee.radius, y, bee.radius * 2, 3);
+                }
+                
+                ctx.restore();
+                
+                // Bee wings
+                ctx.fillStyle = 'rgba(200, 200, 255, 0.9)';
+                const wingBeat = Math.sin(now * 0.02 + bee.angle) * 0.2;
+                ctx.save();
+                ctx.translate(bee.x, bee.y);
+                ctx.rotate(wingBeat);
+                
+                // Wings
+                ctx.beginPath();
+                ctx.ellipse(-10, -8, 8, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(10, -8, 8, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(-8, -5, 6, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(8, -5, 6, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // Bee stinger (only in hard mode)
+                if (isHardMode) {
+                    ctx.fillStyle = '#660000';
+                    ctx.beginPath();
+                    ctx.moveTo(bee.x, bee.y + bee.radius);
+                    ctx.lineTo(bee.x - 3, bee.y + bee.radius + 8);
+                    ctx.lineTo(bee.x + 3, bee.y + bee.radius + 8);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+            
+
+            
+            // Draw powerups
+            powerups.forEach(powerup => {
+                let color = '#FFD700';
+                let glowColor = 'rgba(255, 215, 0, 0.5)';
+                
+                switch(powerup.type) {
+                    case 'longTongue':
+                        color = '#FF69B4';
+                        glowColor = 'rgba(255, 105, 180, 0.5)';
+                        break;
+                    case 'beeShield':
+                        color = '#00FFFF';
+                        glowColor = 'rgba(0, 255, 255, 0.5)';
+                        break;
+                    case 'speedBoost':
+                        color = '#FFFF00';
+                        glowColor = 'rgba(255, 255, 0, 0.5)';
+                        break;
+                }
+                
+                // Powerup rendering
+                ctx.save();
+                
+                // Simple drop shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 3;
+                
+                // Draw a star shape
+                drawStar(powerup.x, powerup.y, powerup.radius, color, now);
+                
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                
+                ctx.restore();
+            });
+            
+            // Draw particles
+            particles.forEach(particle => {
+                const alpha = particle.life / particle.maxLife;
+                if (particle.isConfetti) {
+                    // Rainbow confetti particles
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size * alpha, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                } else {
+                    // Regular fly death particles
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size * alpha, 0, Math.PI * 2);
+                ctx.fill();
+                }
+            });
+
+            // Draw ash particles over everything else in hard mode
+            if (isHardMode) {
+                ashParticles.forEach(ash => {
+                    ctx.fillStyle = `rgba(80, 80, 80, ${ash.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(ash.x, ash.y, ash.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            }
+        }
+        
+        /**
+         * Main game loop - runs continuously at ~60fps
+         * Handles update logic, rendering, and frame scheduling
+         */
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // =====================================
+        // GAME INITIALIZATION
+        // =====================================
+        
+        /**
+         * Initialize the game on page load
+         * Sets up UI state and starts the main game loop
+         */
+        function initializeGame() {
+            updateColorDisplay();
+            gameLoop();
+        }
+        
+        // Start the game
+        initializeGame();
+    </script>
+</body>
+</html>
