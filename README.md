@@ -4,7 +4,7 @@ A browser-based arcade game where you play as a frog catching flies while avoidi
 
 This was originally created as a simple pygame project that I made in Notepad at some ungodly hour during freshman year, this version represents a complete reimagining and expansion of the concept with significantly enhanced gameplay, visuals, and technical implementation.
 
-<img width="1533" height="1153" alt="image" src="https://github.com/user-attachments/assets/85eaa0d0-b4ea-4915-94c6-66d4a9914e95" />
+<img width="1935" height="1226" alt="image" src="https://github.com/user-attachments/assets/62dff7ec-edc3-4667-afe9-b18ea7cc468c" />
 
 ## Controls
 
