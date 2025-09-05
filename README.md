@@ -4,9 +4,7 @@ A browser-based arcade game where you play as a frog catching flies while avoidi
 
 This was originally created as a simple pygame project that I made in Notepad at some ungodly hour during freshman year, this version represents a complete reimagining and expansion of the concept with significantly enhanced gameplay, visuals, and technical implementation.
 
-## What It Does
-
-You control a frog on a lily pad using WASD keys. Point your mouse to aim and click or press space to shoot your tongue at flies. Catch all the flies to advance to the next level, but avoid the bees or you'll lose.
+<img width="1533" height="1153" alt="image" src="https://github.com/user-attachments/assets/85eaa0d0-b4ea-4915-94c6-66d4a9914e95" />
 
 ## Controls
 
